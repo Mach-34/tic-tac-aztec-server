@@ -1,0 +1,31 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "resolveJsonModule": true,
+  "scripts": {
+    "deploy": "node --no-warnings=ExperimentalWarning --loader ts-node/esm scripts/deployContract.ts",
+    "server": "node --no-warnings=ExperimentalWarning --loader ts-node/esm server.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aztec/accounts": "file:../../aztec-packages/yarn-project/accounts",
+    "@aztec/aztec.js": "file:../../aztec-packages/yarn-project/aztec.js",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.2",
+    "mongodb": "^6.3.0",
+    "socket.io": "^4.7.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21"
+  }
+}

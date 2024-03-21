@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+      "strict": true,
+      "module": "ESNext", // ES2020
+      "target": "ES2020",
+      "moduleResolution": "Node",
+      "lib": ["DOM", "DOM.Iterable", "ESNext"],
+      "types": ["vite/client"],
+      "jsx": "react-jsx",
+      "skipLibCheck": true,
+      "esModuleInterop": true,
+      "resolveJsonModule": true,
+      "allowSyntheticDefaultImports": true
+    },
+    "ts-node": {
+      "experimentalSpecifierResolution": "node",
+      "transpileOnly": true,
+      "esm": true,
+    }
+  }
