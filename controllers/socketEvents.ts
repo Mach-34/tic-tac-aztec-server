@@ -4,7 +4,7 @@ import { ObjectId, ReturnDocument } from "mongodb";
 
 export const joinGame = (socket: Socket, db: DBClient) => async (data: any, callback: any) => {
     const gameCollection = db.getTable('games');
-    const { address, id, signature } = data;
+    const { address, gameId, id, signature } = data;
 
     // TODO: Ensure challenger is not in game
 
@@ -12,7 +12,8 @@ export const joinGame = (socket: Socket, db: DBClient) => async (data: any, call
     const update = {
         $set: {
             challenger: address,
-            challengerOpenSignature: signature
+            challengerOpenSignature: signature,
+            gameId
         }
     };
     const options = { returnDocument: ReturnDocument.AFTER };
@@ -110,6 +111,7 @@ export const startGame = (socket: Socket, db: DBClient) => async (data: any, cal
             open: undefined,
             turn: []
         },
+        gameId: '',
         turns: [],
         turnIndex: 0
     }
