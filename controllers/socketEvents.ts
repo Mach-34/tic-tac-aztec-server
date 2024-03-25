@@ -4,7 +4,7 @@ import { ObjectId, ReturnDocument } from "mongodb";
 
 export const joinGame = (socket: Socket, db: DBClient) => async (data: any, callback: any) => {
     const gameCollection = db.getTable('games');
-    const { address, id, signature } = data;
+    const { address, gameId, id, signature } = data;
 
     // TODO: Ensure challenger is not in game
 
@@ -12,7 +12,8 @@ export const joinGame = (socket: Socket, db: DBClient) => async (data: any, call
     const update = {
         $set: {
             challenger: address,
-            challengerOpenSignature: signature
+            challengerOpenSignature: signature,
+            gameId
         }
     };
     const options = { returnDocument: ReturnDocument.AFTER };
@@ -110,6 +111,8 @@ export const startGame = (socket: Socket, db: DBClient) => async (data: any, cal
             open: undefined,
             turn: []
         },
+        gameId: '',
+        timeout: undefined,
         turns: [],
         turnIndex: 0
     }
@@ -123,6 +126,16 @@ export const startGame = (socket: Socket, db: DBClient) => async (data: any, cal
         status: 'success', game: { ...game, _id: insertedId }
     };
     callback(res)
+}
+
+export const timeoutTriggered = (socket: Socket, db: DBClient) => async (data: any, callback: any) => {
+    // Emit signed channel
+    // TODO: Switch back to room
+    // socket.to(id).emit('game:turn', result);
+    socket.broadcast.emit('game:timeoutTriggered');
+
+    const res = { status: 'success' };
+    callback(res);
 }
 
 export const turn = (socket: Socket, db: DBClient) => async (data: any, callback: any) => {
