@@ -112,6 +112,7 @@ export const startGame = (socket: Socket, db: DBClient) => async (data: any, cal
             turn: []
         },
         gameId: '',
+        timeout: undefined,
         turns: [],
         turnIndex: 0
     }
@@ -125,6 +126,16 @@ export const startGame = (socket: Socket, db: DBClient) => async (data: any, cal
         status: 'success', game: { ...game, _id: insertedId }
     };
     callback(res)
+}
+
+export const timeoutTriggered = (socket: Socket, db: DBClient) => async (data: any, callback: any) => {
+    // Emit signed channel
+    // TODO: Switch back to room
+    // socket.to(id).emit('game:turn', result);
+    socket.broadcast.emit('game:timeoutTriggered');
+
+    const res = { status: 'success' };
+    callback(res);
 }
 
 export const turn = (socket: Socket, db: DBClient) => async (data: any, callback: any) => {

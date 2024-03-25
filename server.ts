@@ -7,7 +7,7 @@ import { user } from './controllers/user';
 import DBClient from './mongo';
 import dotenv from 'dotenv';
 import { game } from './controllers/game';
-import { finalizeTurn, joinGame, openChannel, signOpponentTurn, startGame, turn } from './controllers/socketEvents';
+import { finalizeTurn, joinGame, openChannel, signOpponentTurn, startGame, timeoutTriggered, turn } from './controllers/socketEvents';
 dotenv.config();
 
 const { MONGO_DB_NAME, MONGO_URL } = process.env;
@@ -41,7 +41,7 @@ server.listen(port, async () => {
         socket.on('game:finalizeTurn', finalizeTurn(socket, client))
         socket.on('game:signOpponentTurn', signOpponentTurn(socket, client))
         socket.on('game:start', startGame(socket, client));
-        // socket.on('game:triggerTimeout')
+        socket.on('game:timeoutTriggered', timeoutTriggered(socket, client))
         socket.on('game:turn', turn(socket, client));
     });
 
