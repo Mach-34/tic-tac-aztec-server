@@ -19,7 +19,6 @@ export const getContractAddress = async (
     {},
     { projection: { address: 1 } }
   );
-  console.log("Result: ", result);
   return result === null ? undefined : result?.address;
 };
 
