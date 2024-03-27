@@ -14,6 +14,7 @@ import {
     openChannel,
     signOpponentTurn,
     startGame,
+    timeoutAnswered,
     timeoutTriggered,
     turn,
 } from "./controllers/socketEvents";
@@ -47,13 +48,12 @@ server.listen(port, async () => {
 
     // Setup up socket.io event listeners
     io.on("connection", (socket: Socket) => {
-        // socket.on('game:timeoutAnswered');
         socket.on("game:join", joinGame(socket, client));
         socket.on("game:openChannel", openChannel(socket, client));
         socket.on("game:finalizeTurn", finalizeTurn(socket, client));
         socket.on("game:signOpponentTurn", signOpponentTurn(socket, client));
         socket.on("game:start", startGame(socket, client));
-        // socket.on('game:timeoutAnswered');
+        socket.on('game:timeoutAnswered', timeoutAnswered(socket, client));
         // socket.on('game:timeoutDisputed');
         socket.on("game:timeoutTriggered", timeoutTriggered(socket, client));
         socket.on("game:turn", turn(socket, client));
