@@ -14,6 +14,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@mach-34/aztec-state-channels": "file:../../aztec-state-channels",
     "@aztec/accounts": "file:../../aztec-packages/yarn-project/accounts",
     "@aztec/aztec.js": "file:../../aztec-packages/yarn-project/aztec.js",
     "body-parser": "^1.20.2",
