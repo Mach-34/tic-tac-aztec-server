@@ -2,6 +2,17 @@ import { Socket } from "socket.io";
 import DBClient from "../mongo";
 import { ObjectId, ReturnDocument } from "mongodb";
 
+export const gameSubmitted = (socket: Socket, db: DBClient) => async (data: any, callback: any) => {
+
+    // Emit signed channel
+    // TODO: Switch back to room
+    // socket.to(id).emit('game:turn', result);
+    socket.broadcast.emit('game:gameSubmitted');
+
+    const res = { status: 'success' };
+    callback(res);
+}
+
 export const joinGame = (socket: Socket, db: DBClient) => async (data: any, callback: any) => {
     const gameCollection = db.getTable('games');
     const { address, gameId, id, signature } = data;
@@ -128,14 +139,67 @@ export const startGame = (socket: Socket, db: DBClient) => async (data: any, cal
     callback(res)
 }
 
-export const timeoutTriggered = (socket: Socket, db: DBClient) => async (data: any, callback: any) => {
+//  TODO: Combine this with turn?
+export const timeoutAnswered = (socket: Socket, db: DBClient) => async (data: any, callback: any) => {
+    const gameCollection = db.getTable('games');
+    const { id, move } = data;
+    const query = { _id: new ObjectId(id as string) };
+
+    const update = {
+        $inc: {
+            "turnIndex": 1
+        },
+        $push: {
+            turns: move,
+        }
+    };
+    const options = { returnDocument: ReturnDocument.AFTER };
+
+    const result = await gameCollection.findOneAndUpdate(query, update, options);
+
     // Emit signed channel
     // TODO: Switch back to room
     // socket.to(id).emit('game:turn', result);
-    socket.broadcast.emit('game:timeoutTriggered');
+    socket.broadcast.emit('game:timeoutAnswered', result);
 
-    const res = { status: 'success' };
+    const res = { status: 'success', game: result };
     callback(res);
+}
+
+export const timeoutTriggered = (socket: Socket, db: DBClient) => async (data: any, callback: any) => {
+    const gameCollection = db.getTable('games');
+    const { id, turnResult } = data;
+
+    // If id is not defined then this timeout was triggered without a signature returned
+    if (id) {
+        const query = { _id: new ObjectId(id as string) };
+        const update =
+        {
+            $inc: {
+                "turnIndex": 1
+            },
+            $push: {
+                "executionResults.turn": turnResult
+            }
+        };
+        const options = { returnDocument: ReturnDocument.AFTER };
+
+        const result = await gameCollection.findOneAndUpdate(query, update, options);
+
+        socket.broadcast.emit('game:timeoutTriggered', result);
+
+        const res = { status: 'success', game: result };
+        callback(res);
+    } else {
+
+        // Emit signed channel
+        // TODO: Switch back to room
+        // socket.to(id).emit('game:turn', result);
+        socket.broadcast.emit('game:timeoutTriggered');
+
+        const res = { status: 'success' };
+        callback(res);
+    }
 }
 
 export const turn = (socket: Socket, db: DBClient) => async (data: any, callback: any) => {
