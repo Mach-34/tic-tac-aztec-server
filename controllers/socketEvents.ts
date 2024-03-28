@@ -2,6 +2,17 @@ import { Socket } from "socket.io";
 import DBClient from "../mongo";
 import { ObjectId, ReturnDocument } from "mongodb";
 
+export const gameSubmitted = (socket: Socket, db: DBClient) => async (data: any, callback: any) => {
+
+    // Emit signed channel
+    // TODO: Switch back to room
+    // socket.to(id).emit('game:turn', result);
+    socket.broadcast.emit('game:gameSubmitted');
+
+    const res = { status: 'success' };
+    callback(res);
+}
+
 export const joinGame = (socket: Socket, db: DBClient) => async (data: any, callback: any) => {
     const gameCollection = db.getTable('games');
     const { address, gameId, id, signature } = data;

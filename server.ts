@@ -3,13 +3,16 @@ import cors from "cors";
 import { Server, Socket } from "socket.io";
 import { createServer } from "node:http";
 import bodyParser from "body-parser";
+import { createAccount } from "@aztec/accounts/testing";
+import { createPXEClient } from "@aztec/aztec.js";
 import { user } from "./controllers/user";
 import DBClient from "./mongo";
 import dotenv from "dotenv";
 import { game } from "./controllers/game";
-import { initContract } from "./utils/contract";
+import { initContract, nudge } from "./utils/contract";
 import {
     finalizeTurn,
+    gameSubmitted,
     joinGame,
     openChannel,
     signOpponentTurn,
@@ -18,9 +21,10 @@ import {
     timeoutTriggered,
     turn,
 } from "./controllers/socketEvents";
+
 dotenv.config();
 
-const { MONGO_DB_NAME, MONGO_URL } = process.env;
+const { MONGO_DB_NAME, MONGO_URL, PXE_URL } = process.env;
 
 const app = express();
 const port = 8000;
@@ -38,9 +42,12 @@ server.listen(port, async () => {
     console.log("Connecting to DB...");
     const client = new DBClient(MONGO_URL!, MONGO_DB_NAME!);
     await client.init();
+    // init connection to pxe
+    const pxe = createPXEClient(PXE_URL!);
+    const deployer = await createAccount(pxe);
 
     // check for existing contract or deploy new one
-    await initContract(client);
+    const contractAddress = await initContract(client, deployer);
 
     // Register HTTP routes
     app.use("/game", game(client));
@@ -51,6 +58,7 @@ server.listen(port, async () => {
         socket.on("game:join", joinGame(socket, client));
         socket.on("game:openChannel", openChannel(socket, client));
         socket.on("game:finalizeTurn", finalizeTurn(socket, client));
+        socket.on("game:gameSubmitted", gameSubmitted(socket, client));
         socket.on("game:signOpponentTurn", signOpponentTurn(socket, client));
         socket.on("game:start", startGame(socket, client));
         socket.on('game:timeoutAnswered', timeoutAnswered(socket, client));
@@ -58,6 +66,10 @@ server.listen(port, async () => {
         socket.on("game:timeoutTriggered", timeoutTriggered(socket, client));
         socket.on("game:turn", turn(socket, client));
     });
-
     console.log(`Tic Tac Aztec Server listening at http://localhost:${port}`);
+
+    // set interval for calling nudge every 30 seconds
+    setInterval(() => {
+        nudge(contractAddress, deployer);
+    }, 30000);
 });
