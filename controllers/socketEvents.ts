@@ -2,14 +2,30 @@ import { Socket } from "socket.io";
 import DBClient from "../mongo";
 import { ObjectId, ReturnDocument } from "mongodb";
 
-export const gameSubmitted = (socket: Socket, db: DBClient) => async (data: any, callback: any) => {
+//  TODO: Combine this with turn?
+export const answerTimeout = (socket: Socket, db: DBClient) => async (data: any, callback: any) => {
+    const gameCollection = db.getTable('games');
+    const { id, move } = data;
+    const query = { _id: new ObjectId(id as string) };
+
+    const update = {
+        $inc: {
+            "turnIndex": 1
+        },
+        $push: {
+            turns: move,
+        }
+    };
+    const options = { returnDocument: ReturnDocument.AFTER };
+
+    const result = await gameCollection.findOneAndUpdate(query, update, options);
 
     // Emit signed channel
     // TODO: Switch back to room
     // socket.to(id).emit('game:turn', result);
-    socket.broadcast.emit('game:gameSubmitted');
+    socket.broadcast.emit('game:timeoutAnswered', result);
 
-    const res = { status: 'success' };
+    const res = { status: 'success', game: result };
     callback(res);
 }
 
@@ -139,34 +155,18 @@ export const startGame = (socket: Socket, db: DBClient) => async (data: any, cal
     callback(res)
 }
 
-//  TODO: Combine this with turn?
-export const timeoutAnswered = (socket: Socket, db: DBClient) => async (data: any, callback: any) => {
-    const gameCollection = db.getTable('games');
-    const { id, move } = data;
-    const query = { _id: new ObjectId(id as string) };
-
-    const update = {
-        $inc: {
-            "turnIndex": 1
-        },
-        $push: {
-            turns: move,
-        }
-    };
-    const options = { returnDocument: ReturnDocument.AFTER };
-
-    const result = await gameCollection.findOneAndUpdate(query, update, options);
+export const submitGame = (socket: Socket, db: DBClient) => async (data: any, callback: any) => {
 
     // Emit signed channel
     // TODO: Switch back to room
     // socket.to(id).emit('game:turn', result);
-    socket.broadcast.emit('game:timeoutAnswered', result);
+    socket.broadcast.emit('game:gameSubmitted');
 
-    const res = { status: 'success', game: result };
+    const res = { status: 'success' };
     callback(res);
 }
 
-export const timeoutTriggered = (socket: Socket, db: DBClient) => async (data: any, callback: any) => {
+export const triggerTimeout = (socket: Socket, db: DBClient) => async (data: any, callback: any) => {
     const gameCollection = db.getTable('games');
     const { id, turnResult } = data;
 
