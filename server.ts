@@ -5,22 +5,22 @@ import { createServer } from "node:http";
 import bodyParser from "body-parser";
 import { createAccount } from "@aztec/accounts/testing";
 import { createPXEClient } from "@aztec/aztec.js";
-import { user } from "./controllers/user";
 import DBClient from "./mongo";
 import dotenv from "dotenv";
 import { game } from "./controllers/game";
 import { initContract, nudge } from "./utils/contract";
 import {
+    answerTimeout,
     finalizeTurn,
-    gameSubmitted,
     joinGame,
     openChannel,
     signOpponentTurn,
     startGame,
-    timeoutAnswered,
-    timeoutTriggered,
+    submitGame,
+    triggerTimeout,
     turn,
 } from "./controllers/socketEvents";
+import { TTZSocketEvent } from "./utils/types";
 
 dotenv.config();
 
@@ -49,22 +49,23 @@ server.listen(port, async () => {
     // check for existing contract or deploy new one
     const contractAddress = await initContract(client, deployer);
 
+    // List of open games
+    // const openGames: string[] = [];
+
     // Register HTTP routes
     app.use("/game", game(client));
-    app.use("/user", user(client));
 
     // Setup up socket.io event listeners
     io.on("connection", (socket: Socket) => {
-        socket.on("game:join", joinGame(socket, client));
-        socket.on("game:openChannel", openChannel(socket, client));
-        socket.on("game:finalizeTurn", finalizeTurn(socket, client));
-        socket.on("game:gameSubmitted", gameSubmitted(socket, client));
-        socket.on("game:signOpponentTurn", signOpponentTurn(socket, client));
-        socket.on("game:start", startGame(socket, client));
-        socket.on('game:timeoutAnswered', timeoutAnswered(socket, client));
-        // socket.on('game:timeoutDisputed');
-        socket.on("game:timeoutTriggered", timeoutTriggered(socket, client));
-        socket.on("game:turn", turn(socket, client));
+        socket.on(TTZSocketEvent.AnswerTimeout, answerTimeout(socket));
+        socket.on(TTZSocketEvent.FinalizeTurn, finalizeTurn(socket));
+        socket.on(TTZSocketEvent.JoinGame, joinGame(socket, client));
+        socket.on(TTZSocketEvent.OpenChannel, openChannel(socket));
+        socket.on(TTZSocketEvent.SignOpponentTurn, signOpponentTurn(socket));
+        socket.on(TTZSocketEvent.StartGame, startGame(socket, client));
+        socket.on(TTZSocketEvent.SubmitGame, submitGame(socket))
+        socket.on(TTZSocketEvent.TriggerTimeout, triggerTimeout(socket));
+        socket.on(TTZSocketEvent.Turn, turn(socket));
     });
     console.log(`Tic Tac Aztec Server listening at http://localhost:${port}`);
 
