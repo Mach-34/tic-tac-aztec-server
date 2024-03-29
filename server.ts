@@ -49,20 +49,23 @@ server.listen(port, async () => {
     // check for existing contract or deploy new one
     const contractAddress = await initContract(client, deployer);
 
+    // List of open games
+    // const openGames: string[] = [];
+
     // Register HTTP routes
     app.use("/game", game(client));
 
     // Setup up socket.io event listeners
     io.on("connection", (socket: Socket) => {
-        socket.on(TTZSocketEvent.AnswerTimeout, answerTimeout(socket, client));
-        socket.on(TTZSocketEvent.FinalizeTurn, finalizeTurn(socket, client));
+        socket.on(TTZSocketEvent.AnswerTimeout, answerTimeout(socket));
+        socket.on(TTZSocketEvent.FinalizeTurn, finalizeTurn(socket));
         socket.on(TTZSocketEvent.JoinGame, joinGame(socket, client));
-        socket.on(TTZSocketEvent.OpenChannel, openChannel(socket, client));;
-        socket.on(TTZSocketEvent.SignOpponentTurn, signOpponentTurn(socket, client));
+        socket.on(TTZSocketEvent.OpenChannel, openChannel(socket));
+        socket.on(TTZSocketEvent.SignOpponentTurn, signOpponentTurn(socket));
         socket.on(TTZSocketEvent.StartGame, startGame(socket, client));
-        socket.on(TTZSocketEvent.SubmitGame, submitGame(socket, client))
-        socket.on(TTZSocketEvent.TriggerTimeout, triggerTimeout(socket, client));
-        socket.on(TTZSocketEvent.Turn, turn(socket, client));
+        socket.on(TTZSocketEvent.SubmitGame, submitGame(socket))
+        socket.on(TTZSocketEvent.TriggerTimeout, triggerTimeout(socket));
+        socket.on(TTZSocketEvent.Turn, turn(socket));
     });
     console.log(`Tic Tac Aztec Server listening at http://localhost:${port}`);
 
