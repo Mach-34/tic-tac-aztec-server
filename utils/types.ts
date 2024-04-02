@@ -8,6 +8,7 @@ export type FinalizeTurnPayload = {
 export type JoinGamePayload = {
     address: string;
     id: string;
+    mongoId: string,
     signature: string[]
 }
 
